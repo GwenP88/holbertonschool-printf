@@ -23,6 +23,7 @@
     int print_nb(va_list args);
 
     /* ---- utils function ---- */
+    int _putchar(char c);
 
 /* ---- Structure ---- */
 /**
