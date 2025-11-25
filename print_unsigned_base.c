@@ -19,7 +19,7 @@ int print_unsigned_base(unsigned int n, unsigned int base, const char *digits)
 
     if (n == 0)
     {
-        _putchar('0');
+        _putchar(digits[0]);
         return (1);
     }
 
@@ -32,7 +32,7 @@ int print_unsigned_base(unsigned int n, unsigned int base, const char *digits)
     while (power >= 1)
 	{
 		digit = current_n / power;
-		_putchar('0' + digit);
+		_putchar(digits[digit]);
         count ++;
 		current_n = current_n % power;
 		power /= base;
