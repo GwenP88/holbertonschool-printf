@@ -1,13 +1,14 @@
 #include "main.h"
 
-/*
-* reçoit le caractère jsute aprés %
-* retourne un pointeur vers la fonction en lien
-* 
-*
-*
-*/
-int (*get_specifier(char c))(va_list)
+/**
+ * get_specifier - function that selects the correct function for a format specifier
+ * @spe_c: character found after the '%'
+ *
+ * Return: pointer to the corresponding handler function,
+ *         or NULL if the specifier is not supported.
+ */
+
+int (*get_specifier(char spe_c))(va_list)
 {
     int i = 0;
     spe_tab tab[] = 
@@ -20,9 +21,9 @@ int (*get_specifier(char c))(va_list)
         {'\0', NULL}
     };
 
-	while (tab[i].c != '\0')
+	while (tab[i].spe_c != '\0')
 	{
-		if (c == tab[i].c)
+		if (spe_c == tab[i].spe_c)
 			return (tab[i].f);
 		i++;
 	}

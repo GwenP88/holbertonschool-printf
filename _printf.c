@@ -19,10 +19,15 @@
 int _printf(const char *format, ...)
 {
     va_list args;
-    int count_char = 0;
-    int format_index = 0;
+    /* int count_char = 0; */
+    /* int format_index = 0;  **/
+
+/* print sert à appeler la fonction _print_text qui sera 
+*la fonction principale (moteur)*/
+    int print;
 
     va_start(args, format);
+    print = _core_printf(format, args);
 
     /*boucler sur format
     * si caractère normal = putchart et count ++
@@ -30,5 +35,5 @@ int _printf(const char *format, ...)
     */
 
     va_end(args);
-    return (count_char);
+    return (print);
 }
