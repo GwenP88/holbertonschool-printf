@@ -51,10 +51,7 @@ int _core_printf(const char *format, va_list args)
         /* If pointer isn't NULL then it returns the correct specifier function */
         if (p_va_list != NULL)
         {
-            va_list copy;
-            va_copy(copy, args);
-            count += p_va_list(copy);
-            va_end(copy);
+            count += p_va_list(args);
         }
         /* If specifier is unknown or not supported 
         * print the % that started the sequence and the char different de specifier
