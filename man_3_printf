@@ -1,0 +1,376 @@
+.TH _PRINTF 3 "November 2025" "Holberton School" "Custom C Library Functions"
+
+.SH NAME
+_printf \- custom formatted output conversion
+
+.SH SYNOPSIS
+.B #include "main.h"
+.PP
+.BI "int _printf(const char *" format ", ...);"
+
+.SH DESCRIPTION
+The
+.BR _printf ()
+function produces output according to a
+.I format
+string that specifies how subsequent arguments (accessed via the variable-argument
+facilities of
+.BR stdarg (3))
+are converted for output.
+.PP
+This is a custom implementation of the standard C library function
+.BR printf (3),
+created as part of the Holberton School low-level programming curriculum.
+
+.SS Return Value
+Upon successful return,
+.BR _printf ()
+returns the number of characters printed (excluding the null byte used to end
+output to strings).
+.PP
+If an error occurs or the format string is invalid, the function returns
+.BR \-1 .
+
+.SS Format String
+The format string is a character string composed of zero or more directives:
+ordinary characters (not
+.BR % ),
+which are copied unchanged to the output stream, and conversion specifications,
+each of which results in fetching zero or more subsequent arguments.
+.PP
+Each conversion specification is introduced by the character
+.BR % ,
+and ends with a
+.I "conversion specifier"
+character.
+
+.SH CONVERSION SPECIFIERS
+A character that specifies the type of conversion to be applied.
+The conversion specifiers and their meanings are:
+
+.TP
+.B %c
+The
+.I int
+argument is converted to an
+.IR "unsigned char" ,
+and the resulting character is written to the standard output.
+
+.TP
+.B %s
+The
+.I "const char *"
+argument is expected to be a pointer to an array of character type
+(pointer to a string). Characters from the array are written up to
+(but not including) a terminating null byte
+.RB ( \[aq]\e0\[aq] ).
+.IP
+If the argument is
+.BR NULL ,
+the string "(null)" is printed.
+
+.TP
+.B %%
+A literal
+.B %
+character is written. No argument is converted.
+The complete conversion specification is
+.BR %% .
+
+.TP
+.B %d, %i
+The
+.I int
+argument is converted to signed decimal notation.
+.IP
+.B Note:
+The current implementation has placeholder code for integer conversion.
+This feature is planned for future releases.
+
+.SH RETURN VALUE
+Upon successful return,
+.BR _printf ()
+returns the number of characters printed (excluding the null byte).
+.PP
+If the
+.I format
+string is
+.B NULL
+or ends with an incomplete conversion specification (e.g., ends with \[aq]%\[aq]),
+the function returns
+.BR \-1 .
+
+.SH EXAMPLES
+.SS Basic Usage
+.nf
+.B #include "main.h"
+
+.B int main(void)
+.B {
+.B "    _printf(\[dq]Hello, World!\\n\[dq]);"
+.B "    return (0);"
+.B }
+.fi
+
+.SS Multiple Format Specifiers
+.nf
+.B #include "main.h"
+
+.B int main(void)
+.B {
+.B "    char letter = \[aq]X\[aq];"
+.B "    char *name = \[dq]Holberton\[dq];"
+.B "    "
+.B "    _printf(\[dq]Character: %c\\n\[dq], letter);"
+.B "    _printf(\[dq]String: %s\\n\[dq], name);"
+.B "    _printf(\[dq]Progress: 95%%\\n\[dq]);"
+.B "    "
+.B "    return (0);"
+.B }
+.fi
+.PP
+.B Output:
+.nf
+Character: X
+String: Holberton
+Progress: 95%
+.fi
+
+.SS Return Value Usage
+.nf
+.B #include "main.h"
+
+.B int main(void)
+.B {
+.B "    int count;"
+.B "    "
+.B "    count = _printf(\[dq]Hello, World!\\n\[dq]);"
+.B "    _printf(\[dq]Printed %d characters\\n\[dq], count);"
+.B "    "
+.B "    return (0);"
+.B }
+.fi
+
+.SS NULL String Handling
+.nf
+.B #include "main.h"
+
+.B int main(void)
+.B {
+.B "    char *ptr = NULL;"
+.B "    "
+.B "    _printf(\[dq]Value: %s\\n\[dq], ptr);"
+.B "    /* Output: Value: (null) */"
+.B "    "
+.B "    return (0);"
+.B }
+.fi
+
+.SH IMPLEMENTATION DETAILS
+
+.SS Architecture
+The
+.BR _printf ()
+function is implemented using a modular architecture:
+
+.TP
+.B 1. _printf()
+Main entry point that initializes the variadic argument list using
+.BR va_start (3),
+calls the core engine, and cleans up with
+.BR va_end (3).
+
+.TP
+.B 2. _core_printf()
+Core engine that parses the format string character by character,
+identifies conversion specifiers, and dispatches to appropriate handler functions.
+
+.TP
+.B 3. get_specifier()
+Dispatcher that maps format specifiers to handler functions using a
+structure-based function pointer table.
+
+.TP
+.B 4. Handler Functions
+Individual functions for each format specifier:
+.RS
+.IP \(bu 3
+.BR print_char ()
+\- Handles
+.B %c
+.IP \(bu 3
+.BR print_str ()
+\- Handles
+.B %s
+.IP \(bu 3
+.BR print_mod ()
+\- Handles
+.B %%
+.IP \(bu 3
+.BR print_nb ()
+\- Handles
+.B %d
+and
+.B %i
+(planned)
+.RE
+
+.SS Function Pointer Table
+The implementation uses a structure-based dispatch table:
+.PP
+.nf
+.B typedef struct specifier
+.B {
+.B "    char c;                      /* Format specifier */"
+.B "    int (*f)(va_list args);      /* Handler function */"
+.B } spe_tab;
+.fi
+
+.SS Error Handling
+.TP
+.B NULL format string
+Returns \-1
+.TP
+.B Incomplete specifier
+Returns \-1 if format string ends with \[aq]%\[aq]
+.TP
+.B NULL string pointer
+Prints "(null)" for %s with NULL argument
+.TP
+.B Unknown specifier
+Prints \[aq]%\[aq] and the unknown character literally
+
+.SH FILES
+.TP
+.B main.h
+Header file containing function prototypes and structure definitions
+.TP
+.B _printf.c
+Main function implementation
+.TP
+.B _core_printf.c
+Core parsing and formatting engine
+.TP
+.B find_specifier.c
+Specifier dispatcher using function pointer table
+.TP
+.B print_char.c
+Character conversion handler
+.TP
+.B print_str.c
+String conversion handler
+.TP
+.B print_mod.c
+Percent sign handler
+.TP
+.B print_number.c
+Integer conversion handler (planned)
+.TP
+.B _putchar.c
+Low-level character output function using
+.BR write (2)
+.TP
+.B utils.c
+Utility functions
+
+.SH COMPILATION
+To compile a program using
+.BR _printf (),
+include all source files:
+.PP
+.nf
+.B gcc \-Wall \-Werror \-Wextra \-pedantic \-std=gnu89 *.c \-o printf_test
+.fi
+
+.SH NOTES
+
+.SS Differences from Standard printf()
+This custom implementation differs from the standard
+.BR printf (3)
+in several ways:
+.IP \(bu 3
+Limited set of conversion specifiers
+.IP \(bu 3
+No support for flags (\-, +, 0, #, space)
+.IP \(bu 3
+No support for field width or precision
+.IP \(bu 3
+No support for length modifiers (h, l, L, etc.)
+.IP \(bu 3
+No support for hexadecimal, octal, unsigned, pointer, or floating-point conversions
+.IP \(bu 3
+Simplified error handling
+
+.SH BUGS
+.IP \(bu 3
+Integer conversion
+.RB ( %d ", " %i )
+is not yet fully implemented
+.IP \(bu 3
+No support for field width, precision, or flags
+.IP \(bu 3
+Limited error checking compared to standard
+.BR printf (3)
+
+.SH CONFORMING TO
+This implementation is inspired by the C99 standard for
+.BR printf (3)
+but implements only a subset of its functionality.
+It adheres to the Betty coding style guidelines used at Holberton School.
+
+.SH SEE ALSO
+.BR printf (3),
+.BR write (2),
+.BR stdarg (3),
+.BR va_start (3),
+.BR va_arg (3),
+.BR va_end (3)
+
+.SH AUTHORS
+.B Gwen PICHOT
+<https://github.com/GwenP88>
+.PP
+.B Valentin PLANCHON
+<https://github.com/ValentinCA28>
+.PP
+Written as part of the Holberton School curriculum.
+
+.SH COPYRIGHT
+This is free and unencumbered software released into the educational domain.
+.PP
+This project is part of the Holberton School low-level programming curriculum
+and is intended for educational purposes.
+
+.SH PROJECT INFORMATION
+.TP
+.B Project:
+holbertonschool-printf
+.TP
+.B Repository:
+https://github.com/GwenP88/holbertonschool-printf
+.TP
+.B Language:
+C
+.TP
+.B Standard:
+C89 (ANSI C)
+.TP
+.B Compiler:
+gcc with flags: \-Wall \-Werror \-Wextra \-pedantic \-std=gnu89
+.TP
+.B Coding Style:
+Betty
+
+.SH HISTORY
+This project was developed in November 2025 as a collaborative learning
+exercise in low-level programming, focusing on variadic functions,
+function pointers, and formatted output implementation.
+
+.SH COLOPHON
+This page is part of the
+.I holbertonschool-printf
+project documentation.
+A description of the project, information about reporting bugs,
+and the latest version of this page can be found at
+https://github.com/ValentinCA28/holbertonschool-printf
+
