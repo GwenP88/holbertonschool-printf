@@ -82,10 +82,57 @@ The complete conversion specification is
 The
 .I int
 argument is converted to signed decimal notation.
-.IP
-.B Note:
-The current implementation has placeholder code for integer conversion.
-This feature is planned for future releases.
+
+.TP
+.B %u
+The
+.I "unsigned int"
+argument is converted to unsigned decimal notation.
+
+.TP
+.B %o
+The
+.I "unsigned int"
+argument is converted to unsigned octal notation.
+
+.TP
+.B %x
+The
+.I "unsigned int"
+argument is converted to unsigned hexadecimal notation (lowercase).
+The digits used are
+.BR 0123456789abcdef .
+
+.TP
+.B %X
+The
+.I "unsigned int"
+argument is converted to unsigned hexadecimal notation (uppercase).
+The digits used are
+.BR 0123456789ABCDEF .
+
+.TP
+.B %b
+The
+.I "unsigned int"
+argument is converted to unsigned binary notation.
+This is a custom conversion specifier specific to this implementation.
+
+.TP
+.B %S
+The
+.I "const char *"
+argument is printed as a string, but non-printable characters
+(ASCII < 32 or >= 127) are printed as
+.B \exHH
+where HH is the character's hexadecimal value in uppercase.
+
+.TP
+.B %r
+The
+.I "const char *"
+argument is printed in reverse order.
+This is a custom conversion specifier specific to this implementation.
 
 .SH RETURN VALUE
 Upon successful return,
@@ -166,6 +213,56 @@ Progress: 95%
 .B }
 .fi
 
+.SS Number Format Conversions
+.nf
+.B #include "main.h"
+
+.B int main(void)
+.B {
+.B "    unsigned int num = 255;"
+.B "    "
+.B "    _printf(\[dq]Decimal: %d\\n\[dq], 42);"
+.B "    _printf(\[dq]Unsigned: %u\\n\[dq], num);"
+.B "    _printf(\[dq]Octal: %o\\n\[dq], num);"
+.B "    _printf(\[dq]Hex lower: %x\\n\[dq], num);"
+.B "    _printf(\[dq]Hex upper: %X\\n\[dq], num);"
+.B "    _printf(\[dq]Binary: %b\\n\[dq], 5);"
+.B "    "
+.B "    return (0);"
+.B }
+.fi
+.PP
+.B Output:
+.nf
+Decimal: 42
+Unsigned: 255
+Octal: 377
+Hex lower: ff
+Hex upper: FF
+Binary: 101
+.fi
+
+.SS Custom String Conversions
+.nf
+.B #include "main.h"
+
+.B int main(void)
+.B {
+.B "    _printf(\[dq]Normal: %s\\n\[dq], \[dq]Hello\[dq]);"
+.B "    _printf(\[dq]Reverse: %r\\n\[dq], \[dq]Hello\[dq]);"
+.B "    _printf(\[dq]Special: %S\\n\[dq], \[dq]Hello\\nWorld\[dq]);"
+.B "    "
+.B "    return (0);"
+.B }
+.fi
+.PP
+.B Output:
+.nf
+Normal: Hello
+Reverse: olleH
+Special: Hello\\x0AWorld
+.fi
+
 .SH IMPLEMENTATION DETAILS
 
 .SS Architecture
@@ -203,16 +300,43 @@ Individual functions for each format specifier:
 \- Handles
 .B %s
 .IP \(bu 3
+.BR print_S ()
+\- Handles
+.B %S
+.IP \(bu 3
 .BR print_percent ()
 \- Handles
 .B %%
 .IP \(bu 3
-.BR print_nb ()
+.BR print_s_int ()
 \- Handles
 .B %d
 and
 .B %i
-(planned)
+.IP \(bu 3
+.BR print_uns_int ()
+\- Handles
+.B %u
+.IP \(bu 3
+.BR print_hex ()
+\- Handles
+.B %x
+.IP \(bu 3
+.BR print_HEX ()
+\- Handles
+.B %X
+.IP \(bu 3
+.BR print_oct ()
+\- Handles
+.B %o
+.IP \(bu 3
+.BR print_bin ()
+\- Handles
+.B %b
+.IP \(bu 3
+.BR print_reverse ()
+\- Handles
+.B %r
 .RE
 
 .SS Function Pointer Table
@@ -255,23 +379,41 @@ Core parsing and formatting engine
 Specifier dispatcher using function pointer table
 .TP
 .B print_char.c
-Character conversion handler
+Character conversion handler (%c)
 .TP
 .B print_str.c
-String conversion handler
+String conversion handler (%s)
+.TP
+.B print_S.c
+String with non-printable character handler (%S)
 .TP
 .B print_percent.c
-Percent sign handler
+Percent sign handler (%%)
 .TP
-.B print_number.c
-Integer conversion handler (planned)
+.B print_s_int.c
+Signed integer conversion handler (%d, %i)
+.TP
+.B print_uns_int.c
+Unsigned integer conversion handler (%u)
+.TP
+.B print_hex.c
+Hexadecimal conversion handlers (%x, %X)
+.TP
+.B print_oct.c
+Octal conversion handler (%o)
+.TP
+.B print_bin.c
+Binary conversion handler (%b)
+.TP
+.B print_reverse.c
+Reverse string handler (%r)
+.TP
+.B print_unsigned_base.c
+Generic unsigned base conversion utility
 .TP
 .B _putchar.c
 Low-level character output function using
 .BR write (2)
-.TP
-.B utils.c
-Utility functions
 
 .SH COMPILATION
 To compile a program using
@@ -289,28 +431,32 @@ This custom implementation differs from the standard
 .BR printf (3)
 in several ways:
 .IP \(bu 3
-Limited set of conversion specifiers
+Limited set of conversion specifiers (no %p, %f, %e, %g, %n)
 .IP \(bu 3
 No support for flags (\-, +, 0, #, space)
 .IP \(bu 3
-No support for field width or precision
+No support for field width or precision modifiers
 .IP \(bu 3
 No support for length modifiers (h, l, L, etc.)
 .IP \(bu 3
-No support for hexadecimal, octal, unsigned, pointer, or floating-point conversions
+No support for pointer or floating-point conversions
+.IP \(bu 3
+Includes custom conversion specifiers (%b for binary, %r for reverse, %S for special string handling)
 .IP \(bu 3
 Simplified error handling
 
 .SH BUGS
 .IP \(bu 3
-Integer conversion
-.RB ( %d ", " %i )
-is not yet fully implemented
-.IP \(bu 3
 No support for field width, precision, or flags
+.IP \(bu 3
+No support for pointer conversion (%p)
+.IP \(bu 3
+No support for floating-point conversions (%f, %e, %g)
 .IP \(bu 3
 Limited error checking compared to standard
 .BR printf (3)
+.IP \(bu 3
+%S conversion returns \-1 for NULL strings instead of printing "(null)"
 
 .SH CONFORMING TO
 This implementation is inspired by the C99 standard for
@@ -372,5 +518,5 @@ This page is part of the
 project documentation.
 A description of the project, information about reporting bugs,
 and the latest version of this page can be found at
-https://github.com/ValentinCA28/holbertonschool-printf
+https://github.com/GwenP88/holbertonschool-printf
 

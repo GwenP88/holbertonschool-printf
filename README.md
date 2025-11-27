@@ -28,6 +28,7 @@ int _printf(const char *format, ...);
 |-----------|-------------|---------|--------|
 | `%c` | Prints a single character | `_printf("%c", 'A')` → `A` | ✅ Implemented |
 | `%s` | Prints a string | `_printf("%s", "Hello")` → `Hello` | ✅ Implemented |
+| `%S` | Prints a string with non-printable chars as \xHH | `_printf("%S", "Hello\nWorld")` → `Hello\x0AWorld` | ✅ Implemented |
 | `%%` | Prints a literal percent sign | `_printf("100%%")` → `100%` | ✅ Implemented |
 | `%d` | Prints a signed decimal integer | `_printf("%d", 42)` → `42` | ✅ Implemented |
 | `%i` | Prints a signed integer | `_printf("%i", -42)` → `-42` | ✅ Implemented |
@@ -36,6 +37,7 @@ int _printf(const char *format, ...);
 | `%x` | Prints an unsigned hexadecimal (lowercase) | `_printf("%x", 255)` → `ff` | ✅ Implemented |
 | `%X` | Prints an unsigned hexadecimal (uppercase) | `_printf("%X", 255)` → `FF` | ✅ Implemented |
 | `%b` | Prints an unsigned binary number | `_printf("%b", 5)` → `101` | ✅ Implemented |
+| `%r` | Prints a string in reverse | `_printf("%r", "Hello")` → `olleH` | ✅ Implemented |
 
 ## Requirements
 
@@ -55,7 +57,7 @@ int _printf(const char *format, ...);
 
 ### Clone the repository
 ```bash
-git clone https://github.com/ValentinCA28/holbertonschool-printf.git
+git clone https://github.com/GwenP88/holbertonschool-printf.git
 cd holbertonschool-printf
 ```
 
@@ -185,6 +187,35 @@ Hex (uppercase): FF
 Binary: 101
 ```
 
+### Special String Conversions
+
+```c
+#include "main.h"
+
+int main(void)
+{
+    /* Reverse string (%r) */
+    _printf("Normal: %s\n", "Hello");
+    _printf("Reverse: %r\n", "Hello");
+    
+    /* Non-printable characters (%S) */
+    _printf("Regular string: %s\n", "Hello\nWorld");
+    _printf("With hex codes: %S\n", "Hello\nWorld");
+    _printf("Special chars: %S\n", "Best\tSchool");
+    
+    return (0);
+}
+```
+**Output:**
+```
+Normal: Hello
+Reverse: olleH
+Regular string: Hello
+World
+With hex codes: Hello\x0AWorld
+Special chars: Best\x09School
+```
+
 ## Project Structure
 
 ```
@@ -195,13 +226,14 @@ holbertonschool-printf/
 ├── find_specifier.c        # Specifier dispatcher with function pointer table
 ├── print_char.c            # Handler for %c conversion
 ├── print_str.c             # Handler for %s conversion
+├── print_S.c               # Handler for %S conversion (non-printable chars)
 ├── print_percent.c         # Handler for %% conversion
 ├── print_s_int.c           # Handler for %d and %i conversion
 ├── print_uns_int.c         # Handler for %u conversion
-├── print_hex.c             # Handler for %x conversion (lowercase)
-├── print_HEX.c             # Handler for %X conversion (uppercase)
+├── print_hex.c             # Handler for %x and %X conversion (both cases)
 ├── print_oct.c             # Handler for %o conversion (octal)
 ├── print_bin.c             # Handler for %b conversion (binary)
+├── print_reverse.c         # Handler for %r conversion (reverse string)
 ├── print_unsigned_base.c   # Generic unsigned base conversion utility
 ├── _putchar.c              # Low-level character output function
 ├── man_3_printf            # Manual page
@@ -234,6 +266,7 @@ holbertonschool-printf/
 Each conversion specifier has its own dedicated handler:
 - **`print_char`:** Prints a single character from `va_arg`
 - **`print_str`:** Prints a string with NULL protection
+- **`print_S`:** Prints a string with non-printable characters as \xHH (includes helper function `print_non_printable_hex`)
 - **`print_percent`:** Prints a literal '%' character
 - **`print_s_int`:** Prints signed decimal integers (%d, %i)
 - **`print_uns_int`:** Prints unsigned decimal integers (%u)
@@ -241,6 +274,7 @@ Each conversion specifier has its own dedicated handler:
 - **`print_HEX`:** Prints uppercase hexadecimal (%X)
 - **`print_oct`:** Prints octal numbers (%o)
 - **`print_bin`:** Prints binary numbers (%b - custom specifier)
+- **`print_reverse`:** Prints a string in reverse (%r - custom specifier)
 - **`print_unsigned_base`:** Generic utility for base conversion
 
 ### Function Pointer Table
@@ -455,6 +489,20 @@ int print_unsigned_base(unsigned int n, unsigned int base, char *digits);
 ```
 Generic utility function for converting unsigned integers to any base representation.
 
+#### `print_S`
+```c
+int print_S(va_list args);
+```
+Handles %S conversion - prints a string with non-printable characters (< 32 or >= 127) displayed as \xHH in uppercase hexadecimal.
+
+**Note:** This function uses an internal helper function `print_non_printable_hex(unsigned char value)` defined in the same file to convert each non-printable character to \xHH format.
+
+#### `print_reverse`
+```c
+int print_reverse(va_list args);
+```
+Handles %r conversion - prints a string in reverse order (custom specifier).
+
 ## Implementation Status
 
 ### ✅ Completed Features
@@ -462,6 +510,7 @@ Generic utility function for converting unsigned integers to any base representa
 **Basic Conversions:**
 - [x] Character conversion (%c)
 - [x] String conversion (%s) with NULL handling
+- [x] String with non-printable as hex (%S)
 - [x] Percent sign conversion (%%)
 
 **Number Conversions:**
@@ -471,6 +520,9 @@ Generic utility function for converting unsigned integers to any base representa
 - [x] Hexadecimal conversion - uppercase (%X)
 - [x] Octal conversion (%o)
 - [x] Binary conversion (%b) - custom specifier
+
+**Custom Conversions:**
+- [x] Reverse string (%r) - custom specifier
 
 **Core Features:**
 - [x] Error handling for NULL format strings
