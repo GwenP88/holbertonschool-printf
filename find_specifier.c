@@ -24,7 +24,6 @@ int (*get_specifier(char spe_c))(va_list)
 		{'b', print_bin},
 		{'x', print_hex},
 		{'X', print_HEX},
-		{'r', print_reverse},
 		{'\0', NULL}
 	};
 
